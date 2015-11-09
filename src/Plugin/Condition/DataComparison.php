@@ -24,6 +24,7 @@ use Drupal\rules\Core\RulesConditionBase;
  *     "operator" = @ContextDefinition("string",
  *       label = @Translation("Operator"),
  *       description = @Translation("The comparison operator."),
+ *       default_value = "=",
  *       required = FALSE
  *     ),
  *     "value" = @ContextDefinition("any",
