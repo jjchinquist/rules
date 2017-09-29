@@ -1,18 +1,13 @@
 <?php
 
-/**
- * @file
- * Contains Drupal\rules\Plugin\RulesAction\SystemSendEmail.
- */
-
 namespace Drupal\rules\Plugin\RulesAction;
 
+use Drupal\Core\Language\LanguageInterface;
+use Drupal\Core\Mail\MailManagerInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\rules\Core\RulesActionBase;
 use Psr\Log\LoggerInterface;
-use Psr\Log\LogLevel;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Drupal\Core\Language\LanguageInterface;
 
 /**
  * Provides "Send email" rules action.
@@ -38,11 +33,13 @@ use Drupal\Core\Language\LanguageInterface;
  *     "reply" = @ContextDefinition("email",
  *       label = @Translation("Reply to"),
  *       description = @Translation("The mail's reply-to address. Leave it empty to use the site-wide configured address."),
+ *       default_value = NULL,
  *       required = FALSE,
  *     ),
  *     "language" = @ContextDefinition("language",
  *       label = @Translation("Language"),
  *       description = @Translation("If specified, the language used for getting the mail message and subject."),
+ *       default_value = NULL,
  *       required = FALSE,
  *     ),
  *   }
@@ -76,10 +73,10 @@ class SystemSendEmail extends RulesActionBase implements ContainerFactoryPluginI
    *   The plugin implementation definition.
    * @param \Psr\Log\LoggerInterface $logger
    *   The alias storage service.
-   * @param $mail_manager
-   *   The alias mail manager service.
+   * @param \Drupal\Core\Mail\MailManagerInterface $mail_manager
+   *   The mail manager service.
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, LoggerInterface $logger, $mail_manager) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, LoggerInterface $logger, MailManagerInterface $mail_manager) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->logger = $logger;
     $this->mailManager = $mail_manager;

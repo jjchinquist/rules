@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\rules\Core\RulesActionManagerInterface.
- */
-
 namespace Drupal\rules\Core;
 
 use Drupal\Component\Plugin\CategorizingPluginManagerInterface;
@@ -19,5 +14,13 @@ use Drupal\Core\Plugin\Context\ContextAwarePluginManagerInterface;
  * @see plugin_api
  */
 interface RulesActionManagerInterface extends CategorizingPluginManagerInterface, ContextAwarePluginManagerInterface {
+
+  /**
+   * {@inheritdoc}
+   *
+   * @return \Drupal\rules\Core\RulesActionInterface
+   *   A fully configured plugin instance.
+   */
+  public function createInstance($plugin_id, array $configuration = []);
 
 }

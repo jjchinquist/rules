@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\rules\Tests\ConfigEntityDefaultsTest.
- */
-
 namespace Drupal\Tests\rules\Kernel;
 
 /**
@@ -26,16 +21,16 @@ class ConfigEntityDefaultsTest extends RulesDrupalTestBase {
    *
    * @var array
    */
-  public static $modules = ['rules', 'rules_test_default_component', 'user', 'system'];
+  public static $modules = ['rules', 'rules_test',
+    'rules_test_default_component', 'user', 'system',
+  ];
 
   /**
    * Disable strict config schema checking for now.
    *
-   * @todo: Fix once config schema has been improved.
-   *
    * @var bool
    */
-  protected $strictConfigSchema = FALSE;
+  protected $strictConfigSchema = TRUE;
 
   /**
    * The entity type manager.
@@ -60,21 +55,20 @@ class ConfigEntityDefaultsTest extends RulesDrupalTestBase {
   public function testDefaultComponents() {
     $config_entity = $this->storage->load('rules_test_default_component');
 
-    /** @var $config_entity RulesComponent */
-    $expression = $config_entity
-      ->getExpression();
-
     $user = $this->entityTypeManager->getStorage('user')
-      ->create(array('mail' => 'test@example.com'));
+      ->create(['mail' => 'test@example.com']);
 
-    $expression
+    $result = $config_entity
+      ->getComponent()
       ->setContextValue('user', $user)
       ->execute();
 
     // Test that the action was executed correctly.
     $messages = drupal_get_messages();
     $message_string = isset($messages['status'][0]) ? (string) $messages['status'][0] : NULL;
-    $this->assertEqual($message_string, 'test@example.com');
+    $this->assertEquals($message_string, 'test@example.com');
+
+    $this->assertEquals('test@example.comtest@example.com', $result['concatenated']);
   }
 
 }

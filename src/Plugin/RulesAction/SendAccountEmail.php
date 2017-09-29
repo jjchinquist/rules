@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\rules\Plugin\RulesAction\SendAccountEmail.
- */
-
 namespace Drupal\rules\Plugin\RulesAction;
 
 use Drupal\rules\Core\RulesActionBase;
@@ -36,7 +31,7 @@ class SendAccountEmail extends RulesActionBase {
   /**
    * Send account email.
    *
-   * @param \Drupal\user\UserInterface $account
+   * @param \Drupal\user\UserInterface $user
    *   User who should receive the notification.
    * @param string $email_type
    *   Type of email to be sent.

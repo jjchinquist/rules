@@ -1,26 +1,20 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\rules\Engine\ConditionExpressionContainer.
- */
-
 namespace Drupal\rules\Engine;
 
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\rules\Context\ContextConfig;
 use Drupal\rules\Exception\InvalidExpressionException;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Container for conditions.
  */
-abstract class ConditionExpressionContainer extends ExpressionBase implements ConditionExpressionContainerInterface, ContainerFactoryPluginInterface {
+abstract class ConditionExpressionContainer extends ExpressionContainerBase implements ConditionExpressionContainerInterface, ContainerFactoryPluginInterface {
 
   /**
    * List of conditions that are evaluated.
    *
-   * @var \Drupal\rules\Core\RulesConditionInterface[]
+   * @var \Drupal\rules\Engine\ConditionExpressionInterface[]
    */
   protected $conditions = [];
 
@@ -43,20 +37,8 @@ abstract class ConditionExpressionContainer extends ExpressionBase implements Co
     $configuration += ['conditions' => []];
     foreach ($configuration['conditions'] as $condition_config) {
       $condition = $this->expressionManager->createInstance($condition_config['id'], $condition_config);
-      $this->addExpressionObject($condition);
+      $this->conditions[] = $condition;
     }
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
-    return new static(
-      $configuration,
-      $plugin_id,
-      $plugin_definition,
-      $container->get('plugin.manager.rules_expression')
-    );
   }
 
   /**
@@ -64,19 +46,13 @@ abstract class ConditionExpressionContainer extends ExpressionBase implements Co
    */
   public function addExpressionObject(ExpressionInterface $expression) {
     if (!$expression instanceof ConditionExpressionInterface) {
-      throw new InvalidExpressionException();
+      throw new InvalidExpressionException('Only condition expressions can be added to a condition container.');
+    }
+    if ($this->getExpression($expression->getUuid())) {
+      throw new InvalidExpressionException('A condition with the same UUID already exists in the container.');
     }
     $this->conditions[] = $expression;
     return $this;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function addExpression($plugin_id, ContextConfig $config = NULL) {
-    return $this->addExpressionObject(
-      $this->expressionManager->createInstance($plugin_id, $config ? $config->toArray() : [])
-    );
   }
 
   /**
@@ -93,7 +69,7 @@ abstract class ConditionExpressionContainer extends ExpressionBase implements Co
   /**
    * {@inheritdoc}
    */
-  public function executeWithState(RulesStateInterface $rules_state) {
+  public function executeWithState(ExecutionStateInterface $rules_state) {
     $result = $this->evaluate($rules_state);
     return $this->isNegated() ? !$result : $result;
   }
@@ -101,7 +77,7 @@ abstract class ConditionExpressionContainer extends ExpressionBase implements Co
   /**
    * Returns the final result after executing the conditions.
    */
-  abstract public function evaluate(RulesStateInterface $rules_state);
+  abstract public function evaluate(ExecutionStateInterface $rules_state);
 
   /**
    * {@inheritdoc}
@@ -130,6 +106,59 @@ abstract class ConditionExpressionContainer extends ExpressionBase implements Co
       $configuration['conditions'][] = $condition->getConfiguration();
     }
     return $configuration;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getIterator() {
+    return new \ArrayIterator($this->conditions);
+  }
+
+  /**
+   * PHP magic __clone function.
+   */
+  public function __clone() {
+    // Implement a deep clone.
+    foreach ($this->conditions as &$condition) {
+      $condition = clone $condition;
+    }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getExpression($uuid) {
+    foreach ($this->conditions as $condition) {
+      if ($condition->getUuid() === $uuid) {
+        return $condition;
+      }
+      if ($condition instanceof ExpressionContainerInterface) {
+        $nested_condition = $condition->getExpression($uuid);
+        if ($nested_condition) {
+          return $nested_condition;
+        }
+      }
+    }
+    return FALSE;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function deleteExpression($uuid) {
+    foreach ($this->conditions as $index => $condition) {
+      if ($condition->getUuid() === $uuid) {
+        unset($this->conditions[$index]);
+        return TRUE;
+      }
+      if ($condition instanceof ExpressionContainerInterface
+        && $condition->deleteExpression($uuid)
+      ) {
+        return TRUE;
+      }
+    }
+    return FALSE;
   }
 
 }

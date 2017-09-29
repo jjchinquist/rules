@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\rules\Context\ContextProviderTrait.
- */
-
 namespace Drupal\rules\Context;
 
 use Drupal\Component\Plugin\Exception\ContextException;
@@ -12,6 +7,9 @@ use Drupal\Core\Plugin\Context\Context;
 
 /**
  * A trait implementing the ContextProviderInterface.
+ *
+ * This trait is intended for context aware plugins that want to provide
+ * context.
  *
  * The trait requires the plugin to use configuration as defined by the
  * ContextConfig class.
@@ -60,7 +58,7 @@ trait ContextProviderTrait {
   }
 
   /**
-   * @see \Drupal\rules\Context\ContextProviderInterface.
+   * @see \Drupal\rules\Context\ContextProviderInterface
    */
   public function getProvidedContextDefinitions() {
     $definition = $this->getPluginDefinition();

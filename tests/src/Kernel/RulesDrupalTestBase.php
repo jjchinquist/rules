@@ -1,14 +1,7 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\rules\Tests\RulesDrupalTestBase.
- */
-
 namespace Drupal\Tests\rules\Kernel;
 
-use Drupal\Component\FileCache\FileCacheFactory;
-use Drupal\Core\Site\Settings;
 use Drupal\KernelTests\KernelTestBase;
 
 /**
@@ -49,16 +42,18 @@ abstract class RulesDrupalTestBase extends KernelTestBase {
    *
    * @var array
    */
-  public static $modules = ['rules', 'rules_test', 'system'];
+  public static $modules = [
+    'rules',
+    'rules_test',
+    'system',
+    'typed_data',
+    'user',
+  ];
 
   /**
    * {@inheritdoc}
    */
   public function setUp() {
-    // @todo Extra hack to avoid test fails, remove this once
-    // https://www.drupal.org/node/2553661 is fixed.
-    FileCacheFactory::setPrefix(Settings::getApcuPrefix('file_cache', $this->root));
-
     parent::setUp();
 
     $this->logger = $this->container->get('logger.channel.rules');

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\rules\Plugin\RulesAction\SystemMessage.
- */
-
 namespace Drupal\rules\Plugin\RulesAction;
 
 use Drupal\Component\Utility\SafeMarkup;
@@ -27,6 +22,7 @@ use Drupal\rules\Core\RulesActionBase;
  *     "repeat" = @ContextDefinition("boolean",
  *       label = @Translation("Repeat message"),
  *       description = @Translation("If disabled and the message has been already shown, then the message won't be repeated."),
+ *       default_value = NULL,
  *       required = FALSE
  *     )
  *   }

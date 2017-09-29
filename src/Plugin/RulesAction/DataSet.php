@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\rules\Plugin\RulesAction\DataSet.
- */
-
 namespace Drupal\rules\Plugin\RulesAction;
 
 use Drupal\rules\Core\RulesActionBase;
@@ -20,11 +15,13 @@ use Drupal\rules\Core\RulesActionBase;
  *     "data" = @ContextDefinition("any",
  *       label = @Translation("Data"),
  *       description = @Translation("Specifies the data to be modified using a data selector, e.g. 'node:author:name'."),
- *       allow_null = TRUE
+ *       allow_null = TRUE,
+ *       assignment_restriction = "selector"
  *     ),
  *     "value" = @ContextDefinition("any",
  *       label = @Translation("Value"),
  *       description = @Translation("The new value to set for the specified data."),
+ *       default_value = NULL,
  *       required = FALSE
  *     )
  *   }
@@ -36,11 +33,16 @@ use Drupal\rules\Core\RulesActionBase;
 class DataSet extends RulesActionBase {
 
   /**
-   * {@inheritdoc}
+   * Executes the Plugin.
+   *
+   * @param mixed $data
+   *   Original value of an element which is being updated.
+   * @param mixed $value
+   *   A new value which is being set to an element identified by data selector.
    */
-  public function execute() {
+  protected function doExecute($data, $value) {
     $typed_data = $this->getContext('data')->getContextData();
-    $typed_data->setValue($this->getContextValue('value'));
+    $typed_data->setValue($value);
   }
 
   /**

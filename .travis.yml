@@ -1,20 +1,26 @@
 language: php
-sudo: false
+# The Travis CI container mode has random functional test fails, so we must use
+# sudo here.
+sudo: true
 
 php:
   - 5.5
   - 5.6
   - 7
-  - hhvm
+  # HHVM is disabled for now because we have not figured out yet how to start a
+  # web server for the browser tests.
+  #- hhvm
+
+env:
+  - DRUPAL_CORE=8.2.x
+  - DRUPAL_CORE=8.3.x
+  - DRUPAL_CORE=8.4.x
 
 matrix:
   allow_failures:
-    # PHP 7 testing is disabled for now since Drupal installation throws
-    # errors. See https://www.drupal.org/node/2454439
-    - php: 7
     # We cannot use hhvm-nightly since that does not work in Travis CI's old
     # Ubuntu 12.04.
-    - php: hhvm
+    #- php: hhvm
   # Don't wait for the allowed failures to build.
   fast_finish: true
 
@@ -22,6 +28,11 @@ mysql:
   database: rules
   username: root
   encoding: utf8
+
+# Cache composer downloads because cloning Coder form drupal.org is very slow :-(
+cache:
+  directories:
+    - $HOME/.composer
 
 before_script:
   # Remove Xdebug as we don't need it and it causes
@@ -40,13 +51,31 @@ before_script:
   - mysql -e 'create database rules'
   # Export database variable for kernel tests.
   - export SIMPLETEST_DB=mysql://root:@127.0.0.1/rules
-  # Download Drupal 8 core.
-  - travis_retry git clone --branch 8.0.x --depth 1 http://git.drupal.org/project/drupal.git
+  # Download Drupal 8 core from the Github mirror because it is faster.
+  - travis_retry git clone --branch $DRUPAL_CORE --depth 1 https://github.com/drupal/drupal.git
   - cd drupal
 
   # Reference rules in build site.
   - ln -s $TESTDIR modules/rules
+  # Install dependencies.
+  - travis_retry git clone --branch 8.x-1.x --depth 1 https://github.com/fago/typed_data.git modules/typed_data
+
+  # Run composer install for Drupal 8.1 and up. We need an up-to-date composer
+  # when installing Drupal 8.1.
+  - travis_retry composer self-update && travis_retry composer install
+
+  # Start a web server on port 8888, run in the background.
+  - php -S localhost:8888 &
+
+  # Export web server URL for browser tests.
+  - export SIMPLETEST_BASE_URL=http://localhost:8888
+
+  # Install PHPCS to check for Drupal coding standards.
+  - travis_retry composer global require drupal/coder
+  - ~/.composer/vendor/bin/phpcs --config-set installed_paths ~/.composer/vendor/drupal/coder/coder_sniffer
 
 script:
   # Run the PHPUnit tests which also include the kernel tests.
-  - ./vendor/phpunit/phpunit/phpunit -c ./core/phpunit.xml.dist ./modules/rules
+  - ./vendor/bin/phpunit -c ./core/phpunit.xml.dist ./modules/rules
+  # Check for coding standards violations
+  - cd modules/rules && ~/.composer/vendor/bin/phpcs

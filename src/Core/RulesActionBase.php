@@ -1,13 +1,9 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\rules\Core\RulesActionBase.
- */
-
 namespace Drupal\rules\Core;
 
-use Drupal\Core\Access\AccessResultForbidden;
+use Drupal\Component\Plugin\Exception\ContextException;
+use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Plugin\ContextAwarePluginBase;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\rules\Context\ContextProviderTrait;
@@ -19,6 +15,7 @@ abstract class RulesActionBase extends ContextAwarePluginBase implements RulesAc
 
   use ContextProviderTrait;
   use ExecutablePluginTrait;
+  use ConfigurationAccessControlTrait;
 
   /**
    * The plugin configuration.
@@ -30,8 +27,33 @@ abstract class RulesActionBase extends ContextAwarePluginBase implements RulesAc
   /**
    * {@inheritdoc}
    */
-  public function refineContextDefinitions() {
+  public function getContextValue($name) {
+    try {
+      return parent::getContextValue($name);
+    }
+    catch (ContextException $e) {
+      // Catch the undocumented exception thrown when no context value is set
+      // for a required context.
+      // @todo: Remove once https://www.drupal.org/node/2677162 is fixed.
+      if (strpos($e->getMessage(), 'context is required') === FALSE) {
+        throw $e;
+      }
+    }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function refineContextDefinitions(array $selected_data) {
     // Do not refine anything by default.
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function assertMetadata(array $selected_data) {
+    // Nothing to assert by default.
+    return [];
   }
 
   /**
@@ -86,7 +108,7 @@ abstract class RulesActionBase extends ContextAwarePluginBase implements RulesAc
   public function access($object, AccountInterface $account = NULL, $return_as_object = FALSE) {
     // Just deny access per default for now.
     if ($return_as_object) {
-      return new AccessResultForbidden();
+      return AccessResult::forbidden();
     }
     return FALSE;
   }

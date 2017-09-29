@@ -1,13 +1,10 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\rules\Plugin\Condition\UserHasRole.
- */
-
 namespace Drupal\rules\Plugin\Condition;
 
 use Drupal\rules\Core\RulesConditionBase;
+use Drupal\rules\Exception\InvalidArgumentException;
+use Drupal\user\UserInterface;
 
 /**
  * Provides a 'User has roles(s)' condition.
@@ -21,12 +18,13 @@ use Drupal\rules\Core\RulesConditionBase;
  *       label = @Translation("User")
  *     ),
  *     "roles" = @ContextDefinition("entity:user_role",
- *       label = @Translation("Entity"),
+ *       label = @Translation("Roles"),
  *       multiple = TRUE
  *     ),
  *     "operation" = @ContextDefinition("string",
  *       label = @Translation("Match roles"),
  *       description = @Translation("If matching against all selected roles, the user must have <em>all</em> the roles selected."),
+ *       default_value = "AND",
  *       required = FALSE
  *     )
  *   }
@@ -37,12 +35,21 @@ use Drupal\rules\Core\RulesConditionBase;
 class UserHasRole extends RulesConditionBase {
 
   /**
-   * {@inheritdoc}
+   * Evaluate if user has role(s).
+   *
+   * @param \Drupal\user\UserInterface $account
+   *   The account to check.
+   * @param \Drupal\user\RoleInterface[] $roles
+   *   Array of user roles.
+   * @param string $operation
+   *   Either "AND": user has all of roles.
+   *   Or "OR": user has at least one of all roles.
+   *   Defaults to "AND".
+   *
+   * @return bool
+   *   TRUE if the user has the role(s).
    */
-  public function evaluate() {
-    $account = $this->getContextValue('user');
-    $roles = $this->getContextValue('roles');
-    $operation = $this->getContext('operation')->hasContextValue() ? $this->getContextValue('operation') : 'AND';
+  protected function doEvaluate(UserInterface $account, array $roles, $operation = 'AND') {
 
     $rids = array_map(function ($role) {
       return $role->id();
@@ -54,8 +61,10 @@ class UserHasRole extends RulesConditionBase {
 
       case 'AND':
         return (bool) !array_diff($rids, $account->getRoles());
+
+      default:
+        throw new InvalidArgumentException('Either use "AND" or "OR". Leave empty for default "AND" behavior.');
     }
-    return FALSE;
   }
 
 }

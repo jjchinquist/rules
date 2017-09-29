@@ -1,13 +1,9 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\rules\Context\ContextDefinition.
- */
-
 namespace Drupal\rules\Context;
 
 use \Drupal\Core\Plugin\Context\ContextDefinition as ContextDefinitionCore;
+use \Drupal\Component\Plugin\Exception\ContextException;
 
 /**
  * Extends the core context definition class with useful methods.
@@ -41,17 +37,14 @@ class ContextDefinition extends ContextDefinitionCore implements ContextDefiniti
   /**
    * The assignment restriction of this context.
    *
-   * @see \Drupal\rules\Context\ContextDefinitionInterface::getAssignmentRestriction()
-   *
    * @var string|null
+   *
+   * @see \Drupal\rules\Context\ContextDefinitionInterface::getAssignmentRestriction()
    */
   protected $assignmentRestriction = NULL;
 
   /**
-   * Exports the definition as an array.
-   *
-   * @return array
-   *   An array with values for all definition keys.
+   * {@inheritdoc}
    */
   public function toArray() {
     $values = [];
@@ -73,13 +66,16 @@ class ContextDefinition extends ContextDefinitionCore implements ContextDefiniti
    *
    * @return static
    *   The created definition.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\ContextException
+   *   If the required classes are not implemented.
    */
   public static function createFromArray($values) {
-    if (isset($values['class']) && !in_array('Drupal\rules\Context\ContextDefinitionInterface', class_implements($values['class']))) {
-      throw new \Exception('ContextDefinition class must implement \Drupal\rules\Context\ContextDefinitionInterface.');
+    if (isset($values['class']) && !in_array(ContextDefinitionInterface::class, class_implements($values['class']))) {
+      throw new ContextException('ContextDefinition class must implement ' . ContextDefinitionInterface::class . '.');
     }
     // Default to Rules context definition class.
-    $values['class'] = isset($values['class']) ? $values['class'] : '\Drupal\rules\Context\ContextDefinition';
+    $values['class'] = isset($values['class']) ? $values['class'] : ContextDefinition::class;
     if (!isset($values['value'])) {
       $values['value'] = 'any';
     }

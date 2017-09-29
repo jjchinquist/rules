@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\rules\Plugin\RulesAction\PathAliasCreate.
- */
-
 namespace Drupal\rules\Plugin\RulesAction;
 
 use Drupal\Core\Language\LanguageInterface;
@@ -32,6 +27,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *     "language" = @ContextDefinition("language",
  *       label = @Translation("Language"),
  *       description = @Translation("If specified, the language for which the path alias applies."),
+ *       default_value = NULL,
  *       required = FALSE
  *     )
  *   }

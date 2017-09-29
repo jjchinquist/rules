@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\rules\Core\RulesActionInterface.
- */
-
 namespace Drupal\rules\Core;
 
 use Drupal\Core\Executable\ExecutableInterface;
@@ -15,7 +10,7 @@ use Drupal\rules\Context\ContextProviderInterface;
 /**
  * Extends the core ActionInterface to provide context.
  */
-interface RulesActionInterface extends ExecutableInterface, ContextAwarePluginInterface, ContextProviderInterface {
+interface RulesActionInterface extends ExecutableInterface, ContextAwarePluginInterface, ContextProviderInterface, ConfigurationAccessControlInterface {
 
   /**
    * Returns a list of context names that should be auto-saved after execution.

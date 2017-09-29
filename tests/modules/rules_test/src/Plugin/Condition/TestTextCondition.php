@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\rules_test\Plugin\Condition\TestTextCondition.
- */
-
 namespace Drupal\rules_test\Plugin\Condition;
 
 use Drupal\rules\Core\RulesConditionBase;
@@ -19,7 +14,8 @@ use Drupal\rules\Core\RulesConditionBase;
  *     "text" = @ContextDefinition("string",
  *       label = @Translation("Text to compare")
  *     )
- *   }
+ *   },
+ *   configure_permissions = { "access test configuration" }
  * )
  */
 class TestTextCondition extends RulesConditionBase {

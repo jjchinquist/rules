@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\rules\Plugin\RulesAction\EntityFetchByField.
- */
-
 namespace Drupal\rules\Plugin\RulesAction;
 
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -35,6 +30,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *     "limit" = @ContextDefinition("integer",
  *       label = @Translation("Limit"),
  *       description = @Translation("Limit the maximum number of fetched entities."),
+ *       default_value = NULL,
  *       required = FALSE,
  *     ),
  *   },
@@ -89,7 +85,7 @@ class EntityFetchByField extends RulesActionBase implements ContainerFactoryPlug
   /**
    * {@inheritdoc}
    */
-  public function refineContextDefinitions() {
+  public function refineContextDefinitions(array $selected_data) {
     if ($type = $this->getContextValue('type')) {
       $this->pluginDefinition['provides']['entity_fetched']->setDataType("entity:$type");
     }

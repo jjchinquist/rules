@@ -1,22 +1,18 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\rules\Plugin\RulesExpression\Rule.
- */
-
 namespace Drupal\rules\Plugin\RulesExpression;
 
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\rules\Context\ContextConfig;
-use Drupal\rules\Engine\ExpressionBase;
 use Drupal\rules\Engine\ActionExpressionContainerInterface;
 use Drupal\rules\Engine\ActionExpressionInterface;
 use Drupal\rules\Engine\ConditionExpressionContainerInterface;
 use Drupal\rules\Engine\ConditionExpressionInterface;
+use Drupal\rules\Engine\ExecutionMetadataStateInterface;
+use Drupal\rules\Engine\ExecutionStateInterface;
+use Drupal\rules\Engine\ExpressionBase;
 use Drupal\rules\Engine\ExpressionInterface;
 use Drupal\rules\Engine\ExpressionManagerInterface;
-use Drupal\rules\Engine\RulesStateInterface;
 use Drupal\rules\Exception\InvalidExpressionException;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -29,7 +25,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *
  * @RulesExpression(
  *   id = "rules_rule",
- *   label = @Translation("A rule, executing actions when conditions are met.")
+ *   label = @Translation("Rule"),
+ *   form_class = "\Drupal\rules\Form\Expression\RuleForm"
  * )
  */
 class Rule extends ExpressionBase implements RuleInterface, ContainerFactoryPluginInterface {
@@ -68,7 +65,9 @@ class Rule extends ExpressionBase implements RuleInterface, ContainerFactoryPlug
     // conjunction (AND), meaning that all conditions in it must evaluate to
     // TRUE to fire the actions.
     $this->conditions = $expression_manager->createInstance('rules_and', $configuration['conditions']);
+    $this->conditions->setRoot($this->getRoot());
     $this->actions = $expression_manager->createInstance('rules_action_set', $configuration['actions']);
+    $this->actions->setRoot($this->getRoot());
   }
 
   /**
@@ -86,7 +85,7 @@ class Rule extends ExpressionBase implements RuleInterface, ContainerFactoryPlug
   /**
    * {@inheritdoc}
    */
-  public function executeWithState(RulesStateInterface $state) {
+  public function executeWithState(ExecutionStateInterface $state) {
     // Evaluate the rule's conditions.
     if (!$this->conditions->isEmpty() && !$this->conditions->executeWithState($state)) {
       // Do not run the actions if the conditions are not met.
@@ -99,8 +98,7 @@ class Rule extends ExpressionBase implements RuleInterface, ContainerFactoryPlug
    * {@inheritdoc}
    */
   public function addCondition($condition_id, ContextConfig $config = NULL) {
-    $this->conditions->addCondition($condition_id, $config);
-    return $this;
+    return $this->conditions->addCondition($condition_id, $config);
   }
 
   /**
@@ -122,8 +120,7 @@ class Rule extends ExpressionBase implements RuleInterface, ContainerFactoryPlug
    * {@inheritdoc}
    */
   public function addAction($action_id, ContextConfig $config = NULL) {
-    $this->actions->addAction($action_id, $config);
-    return $this;
+    return $this->actions->addAction($action_id, $config);
   }
 
   /**
@@ -176,6 +173,69 @@ class Rule extends ExpressionBase implements RuleInterface, ContainerFactoryPlug
     $configuration['conditions'] = $this->conditions->getConfiguration();
     $configuration['actions'] = $this->actions->getConfiguration();
     return $configuration;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getIterator() {
+    // Just pass up the actions for iterating over.
+    return $this->actions->getIterator();
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getExpression($uuid) {
+    $condition = $this->conditions->getExpression($uuid);
+    if ($condition) {
+      return $condition;
+    }
+    return $this->actions->getExpression($uuid);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function deleteExpression($uuid) {
+    $deleted = $this->conditions->deleteExpression($uuid);
+    if (!$deleted) {
+      $deleted = $this->actions->deleteExpression($uuid);
+    }
+    return $deleted;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function checkIntegrity(ExecutionMetadataStateInterface $metadata_state, $apply_assertions = TRUE) {
+    $violation_list = $this->conditions->checkIntegrity($metadata_state, $apply_assertions);
+    $violation_list->addAll($this->actions->checkIntegrity($metadata_state, $apply_assertions));
+    return $violation_list;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function prepareExecutionMetadataState(ExecutionMetadataStateInterface $metadata_state, ExpressionInterface $until = NULL, $apply_assertions = TRUE) {
+    // @todo: If the rule is nested, we may not pass assertions to following
+    // expressions as we do not know whether the rule fires at all. Should we
+    // clone the metadata state to ensure modifications stay local?
+    $found = $this->conditions->prepareExecutionMetadataState($metadata_state, $until, $apply_assertions);
+    if ($found) {
+      return TRUE;
+    }
+    return $this->actions->prepareExecutionMetadataState($metadata_state, $until, $apply_assertions);
+  }
+
+  /**
+   * PHP magic __clone function.
+   */
+  public function __clone() {
+    $this->actions = clone $this->actions;
+    $this->actions->setRoot($this->getRoot());
+    $this->conditions = clone $this->conditions;
+    $this->conditions->setRoot($this->getRoot());
   }
 
 }

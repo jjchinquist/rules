@@ -1,14 +1,10 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\rules\RulesServiceProvider.
- */
-
 namespace Drupal\rules;
 
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\DependencyInjection\ServiceProviderBase;
+use Drupal\rules\Core\ConditionManager;
 
 /**
  * Swaps out the core condition manager.
@@ -19,9 +15,9 @@ class RulesServiceProvider extends ServiceProviderBase {
    * {@inheritdoc}
    */
   public function alter(ContainerBuilder $container) {
-    // Overrides language_manager class to test domain language negotiation.
+    // Overrides the core condition plugin manager service with our own.
     $definition = $container->getDefinition('plugin.manager.condition');
-    $definition->setClass('Drupal\rules\Condition\ConditionManager');
+    $definition->setClass(ConditionManager::class);
   }
 
 }

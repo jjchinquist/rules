@@ -1,15 +1,10 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\rules\Unit\RulesUnitTestBase.
- */
-
 namespace Drupal\Tests\rules\Unit;
 
 use Drupal\rules\Engine\ActionExpressionInterface;
 use Drupal\rules\Engine\ConditionExpressionInterface;
-use Drupal\rules\Engine\RulesStateInterface;
+use Drupal\rules\Engine\ExecutionStateInterface;
 use Drupal\rules\Engine\ExpressionManagerInterface;
 use Drupal\Tests\UnitTestCase;
 use Prophecy\Argument;
@@ -54,17 +49,21 @@ abstract class RulesUnitTestBase extends UnitTestCase {
     parent::setUp();
 
     $this->trueConditionExpression = $this->prophesize(ConditionExpressionInterface::class);
+    $this->trueConditionExpression->getUuid()->willReturn('true_uuid1');
 
     $this->trueConditionExpression->execute()->willReturn(TRUE);
     $this->trueConditionExpression->executeWithState(
-      Argument::type(RulesStateInterface::class))->willReturn(TRUE);
+      Argument::type(ExecutionStateInterface::class))->willReturn(TRUE);
 
     $this->falseConditionExpression = $this->prophesize(ConditionExpressionInterface::class);
+    $this->falseConditionExpression->getUuid()->willReturn('false_uuid1');
+
     $this->falseConditionExpression->execute()->willReturn(FALSE);
     $this->falseConditionExpression->executeWithState(
-      Argument::type(RulesStateInterface::class))->willReturn(FALSE);
+      Argument::type(ExecutionStateInterface::class))->willReturn(FALSE);
 
     $this->testActionExpression = $this->prophesize(ActionExpressionInterface::class);
+    $this->testActionExpression->getUuid()->willReturn('action_uuid1');
 
     $this->expressionManager = $this->prophesize(ExpressionManagerInterface::class);
   }

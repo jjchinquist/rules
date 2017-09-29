@@ -1,13 +1,9 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\rules\Context\ContextConfig.
- */
-
 namespace Drupal\rules\Context;
 
 use Drupal\Core\Plugin\ContextAwarePluginInterface as CoreContextAwarePluginInterface;
+use Drupal\rules\Exception\LogicException;
 
 /**
  * Class for value objects helping with context configuration.
@@ -35,7 +31,7 @@ class ContextConfig {
    *   (optional) Some initial values to set. In the same format as returned
    *   from static::toArray().
    *
-   * @return static
+   * @return $this
    */
   public static function create(array $values = []) {
     return new static($values);
@@ -57,20 +53,20 @@ class ContextConfig {
    *
    * @param string $context_name
    *   The name of the context.
-   * @param string $selector
-   *   A valid data selector; e.g., "node:uid:target_id".
+   * @param string $property_path
+   *   A valid property path; e.g., "node.uid.target_id".
    *
-   * @throws \LogicException
+   * @throws \Drupal\rules\Exception\LogicException
    *   Thrown if a context value and map are set for a given context at the same
    *   time.
    *
    * @return $this
    */
-  public function map($context_name, $selector) {
+  public function map($context_name, $property_path) {
     if (isset($this->config['context_values'][$context_name])) {
-      throw new \LogicException("Cannot map a context value and pre-define it at the same time.");
+      throw new LogicException("Cannot map a context value and pre-define it at the same time.");
     }
-    $this->config['context_mapping'][$context_name] = $selector;
+    $this->config['context_mapping'][$context_name] = $property_path;
     return $this;
   }
 
@@ -84,7 +80,7 @@ class ContextConfig {
    *   context's data type, unless a data processor takes care of processing it
    *   to a valid value.
    *
-   * @throws \LogicException
+   * @throws \Drupal\rules\Exception\LogicException
    *   Thrown if a context value and map are set for a given context at the same
    *   time.
    *
@@ -92,7 +88,7 @@ class ContextConfig {
    */
   public function setValue($context_name, $value) {
     if (isset($this->config['context_mapping'][$context_name])) {
-      throw new \LogicException("Cannot map a context value and pre-define it at the same time.");
+      throw new LogicException("Cannot map a context value and pre-define it at the same time.");
     }
     $this->config['context_values'][$context_name] = $value;
     return $this;

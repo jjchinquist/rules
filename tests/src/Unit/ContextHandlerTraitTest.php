@@ -1,17 +1,12 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\rules\Unit\ContextHandlerTraitTest.
- */
-
 namespace Drupal\Tests\rules\Unit;
 
 use Drupal\Core\Plugin\ContextAwarePluginInterface;
 use Drupal\rules\Context\ContextConfig;
 use Drupal\rules\Context\ContextDefinitionInterface;
 use Drupal\rules\Context\ContextHandlerTrait;
-use Drupal\rules\Engine\RulesStateInterface;
+use Drupal\rules\Engine\ExecutionStateInterface;
 
 /**
  * @coversDefaultClass \Drupal\rules\Context\ContextHandlerTrait
@@ -22,9 +17,9 @@ class ContextHandlerTraitTest extends RulesUnitTestBase {
   /**
    * Tests that a missing required context triggers an exception.
    *
-   * @covers ::mapContext
+   * @covers ::prepareContext
    *
-   * @expectedException \Drupal\rules\Exception\RulesEvaluationException
+   * @expectedException \Drupal\rules\Exception\EvaluationException
    *
    * @expectedExceptionMessage Required context test is missing for plugin testplugin.
    */
@@ -43,13 +38,16 @@ class ContextHandlerTraitTest extends RulesUnitTestBase {
     $plugin->getContextDefinitions()
       ->willReturn(['test' => $context_definition->reveal()])
       ->shouldBeCalled(1);
+    $plugin->getContextValue('test')
+      ->willReturn(NULL)
+      ->shouldBeCalled(1);
     $plugin->getPluginId()->willReturn('testplugin')->shouldBeCalledTimes(1);
 
-    $state = $this->prophesize(RulesStateInterface::class);
+    $state = $this->prophesize(ExecutionStateInterface::class);
 
     // Make the 'mapContext' method visible.
     $reflection = new \ReflectionClass($trait);
-    $method = $reflection->getMethod('mapContext');
+    $method = $reflection->getMethod('prepareContext');
     $method->setAccessible(TRUE);
     $method->invokeArgs($trait, [$plugin->reveal(), $state->reveal()]);
   }

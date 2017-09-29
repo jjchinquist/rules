@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\rules\Core\RulesActionManager.
- */
-
 namespace Drupal\rules\Core;
 
 use Drupal\Core\Cache\CacheBackendInterface;
@@ -14,6 +9,7 @@ use Drupal\Core\Plugin\Context\ContextAwarePluginManagerTrait;
 use Drupal\Core\Plugin\DefaultPluginManager;
 use Drupal\Core\Plugin\Discovery\ContainerDerivativeDiscoveryDecorator;
 use Drupal\rules\Context\AnnotatedClassDiscovery;
+use Drupal\rules\Core\Annotation\RulesAction;
 
 /**
  * Provides an Action plugin manager for the Rules actions API.
@@ -40,7 +36,7 @@ class RulesActionManager extends DefaultPluginManager implements RulesActionMana
    *   The module handler to invoke the alter hook with.
    */
   public function __construct(\Traversable $namespaces, CacheBackendInterface $cache_backend, ModuleHandlerInterface $module_handler) {
-    parent::__construct('Plugin/RulesAction', $namespaces, $module_handler, 'Drupal\rules\Core\RulesActionInterface', 'Drupal\rules\Core\Annotation\RulesAction');
+    parent::__construct('Plugin/RulesAction', $namespaces, $module_handler, RulesActionInterface::class, RulesAction::class);
     $this->alterInfo('rules_action_info');
     $this->setCacheBackend($cache_backend, 'rules_action_info');
   }

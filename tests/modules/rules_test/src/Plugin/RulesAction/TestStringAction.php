@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\rules_test\Plugin\RulesAction\TestStringAction.
- */
-
 namespace Drupal\rules_test\Plugin\RulesAction;
 
 use Drupal\rules\Core\RulesActionBase;
@@ -20,6 +15,7 @@ use Drupal\rules\Core\RulesActionBase;
  *       label = @Translation("Text to concatenate")
  *     )
  *   },
+ *   configure_permissions = { "access test configuration" },
  *   provides = {
  *     "concatenated" = @ContextDefinition("string",
  *       label = @Translation("Concatenated result")

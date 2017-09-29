@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\rules\Plugin\RulesAction\EntityPathAliasCreateDeriver.
- */
-
 namespace Drupal\rules\Plugin\RulesAction;
 
 use Drupal\Component\Plugin\Derivative\DeriverBase;
@@ -73,7 +68,7 @@ class EntityPathAliasCreateDeriver extends DeriverBase implements ContainerDeriv
           'alias' => ContextDefinition::create('string')
             ->setLabel($this->t('Path alias'))
             ->setRequired(TRUE)
-            ->setDescription($this->t("Specify an alternative path by which the content can be accessed. For example, 'about' for an about page. Use a relative path and do not add a trailing slash."))
+            ->setDescription($this->t("Specify an alternative path by which the content can be accessed. For example, 'about' for an about page. Use a relative path and do not add a trailing slash.")),
         ],
         'provides' => [],
       ] + $base_plugin_definition;

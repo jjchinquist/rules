@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\rules\Context\ContextDefinitionInterface.
- */
-
 namespace Drupal\rules\Context;
 
 use \Drupal\Core\Plugin\Context\ContextDefinitionInterface as ContextDefinitionInterfaceCore;
@@ -64,5 +59,13 @@ interface ContextDefinitionInterface extends ContextDefinitionInterfaceCore {
    *   restriction for this context.
    */
   public function setAssignmentRestriction($restriction);
+
+  /**
+   * Exports the definition as an array.
+   *
+   * @return array
+   *   An array with values for all definition keys.
+   */
+  public function toArray();
 
 }

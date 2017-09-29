@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\rules\Core\Annotation\RulesAction.
- */
-
 namespace Drupal\rules\Core\Annotation;
 
 use Drupal\Component\Annotation\Plugin;
@@ -35,9 +30,9 @@ class RulesAction extends Plugin {
   /**
    * The human-readable name of the action plugin.
    *
-   * @ingroup plugin_translatable
-   *
    * @var \Drupal\Core\Annotation\Translation
+   *
+   * @ingroup plugin_translatable
    */
   public $label;
 
@@ -49,6 +44,14 @@ class RulesAction extends Plugin {
    * @ingroup plugin_translatable
    */
   public $category;
+
+  /**
+   * The permission required to access the configuration UI for this plugin.
+   *
+   * @var string[]
+   *   Array of permission string as declared in a *.permissions.yml file.
+   */
+  public $configure_permission;
 
   /**
    * Defines the used context of the action plugin.

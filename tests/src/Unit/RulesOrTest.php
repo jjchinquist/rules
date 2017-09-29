@@ -1,13 +1,9 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\rules\Unit\RulesOrTest.
- */
-
 namespace Drupal\Tests\rules\Unit;
 
-use Drupal\rules\Engine\RulesStateInterface;
+use Drupal\rules\Engine\ConditionExpressionInterface;
+use Drupal\rules\Engine\ExecutionStateInterface;
 use Drupal\rules\Plugin\RulesExpression\RulesOr;
 use Prophecy\Argument;
 
@@ -39,7 +35,7 @@ class RulesOrTest extends RulesUnitTestBase {
   public function testOneCondition() {
     // The method on the test condition must be called once.
     $this->trueConditionExpression->executeWithState(
-      Argument::type(RulesStateInterface::class))->shouldBeCalledTimes(1);
+      Argument::type(ExecutionStateInterface::class))->shouldBeCalledTimes(1);
 
     $this->or->addExpressionObject($this->trueConditionExpression->reveal());
     $this->assertTrue($this->or->execute(), 'Single condition returns TRUE.');
@@ -62,11 +58,18 @@ class RulesOrTest extends RulesUnitTestBase {
   public function testTwoConditions() {
     // The method on the test condition must be called once.
     $this->trueConditionExpression->executeWithState(
-      Argument::type(RulesStateInterface::class))->shouldBeCalledTimes(1);
+      Argument::type(ExecutionStateInterface::class))->shouldBeCalledTimes(1);
+
+    $second_condition = $this->prophesize(ConditionExpressionInterface::class);
+    $second_condition->getUuid()->willReturn('true_uuid2');
+
+    $second_condition->executeWithState(Argument::type(ExecutionStateInterface::class))
+      ->willReturn(TRUE)
+      ->shouldNotBeCalled();
 
     $this->or
       ->addExpressionObject($this->trueConditionExpression->reveal())
-      ->addExpressionObject($this->trueConditionExpression->reveal());
+      ->addExpressionObject($second_condition->reveal());
 
     $this->assertTrue($this->or->execute(), 'Two conditions returns TRUE.');
   }
@@ -75,13 +78,19 @@ class RulesOrTest extends RulesUnitTestBase {
    * Tests two false conditions.
    */
   public function testTwoFalseConditions() {
-    // The method on the test condition must be called twice.
     $this->falseConditionExpression->executeWithState(
-      Argument::type(RulesStateInterface::class))->shouldBeCalledTimes(2);
+      Argument::type(ExecutionStateInterface::class))->shouldBeCalledTimes(1);
+
+    $second_condition = $this->prophesize(ConditionExpressionInterface::class);
+    $second_condition->getUuid()->willReturn('false_uuid2');
+
+    $second_condition->executeWithState(Argument::type(ExecutionStateInterface::class))
+      ->willReturn(FALSE)
+      ->shouldBeCalledTimes(1);
 
     $this->or
       ->addExpressionObject($this->falseConditionExpression->reveal())
-      ->addExpressionObject($this->falseConditionExpression->reveal());
+      ->addExpressionObject($second_condition->reveal());
 
     $this->assertFalse($this->or->execute(), 'Two false conditions return FALSE.');
   }

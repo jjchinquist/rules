@@ -1,13 +1,10 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\rules\Tests\ConfigEntityTest.
- */
-
 namespace Drupal\Tests\rules\Kernel;
 
 use Drupal\rules\Context\ContextDefinition;
+use Drupal\rules\Engine\RulesComponent;
+use Drupal\rules\Plugin\RulesExpression\Rule;
 
 /**
  * Tests storage and loading of Rules config entities.
@@ -54,8 +51,7 @@ class ConfigEntityTest extends RulesDrupalTestBase {
     $config_entity->save();
 
     $loaded_entity = $this->storage->load('test_rule');
-    $this->assertEqual($loaded_entity->get('expression_id'), 'rules_action', 'Expression ID was successfully loaded.');
-    $this->assertEqual($loaded_entity->get('configuration'), $action->getConfiguration(), 'Action configuration is the same after loading the config.');
+    $this->assertEquals($action->getConfiguration(), $loaded_entity->get('component')['expression'], 'Action configuration is the same after loading the config.');
 
     // Create the Rules expression object from the configuration.
     $expression = $loaded_entity->getExpression();
@@ -93,32 +89,30 @@ class ConfigEntityTest extends RulesDrupalTestBase {
    * Make sure that expressions using context definitions can be exported.
    */
   public function testContextDefinitionExport() {
-    $rule = $this->expressionManager->createRule([
-      'context_definitions' => [
-        'test' => ContextDefinition::create('string')
-          ->setLabel('Test string')
-          ->toArray(),
-      ],
-    ]);
+    $component = RulesComponent::create($this->expressionManager->createRule())
+      ->addContextDefinition('test', ContextDefinition::create('string')
+        ->setLabel('Test string')
+      );
 
     $config_entity = $this->storage->create([
       'id' => 'test_rule',
-    ])->setExpression($rule);
+    ])->updateFromComponent($component);
     $config_entity->save();
 
     $loaded_entity = $this->storage->load('test_rule');
     // Create the Rules expression object from the configuration.
     $expression = $loaded_entity->getExpression();
-    $context_definitions = $expression->getContextDefinitions();
-    $this->assertEqual($context_definitions['test']->getDataType(), 'string', 'Data type of context definition is correct.');
-    $this->assertEqual($context_definitions['test']->getLabel(), 'Test string', 'Label of context definition is correct.');
+    $this->assertInstanceOf(Rule::class, $expression);
+    $context_definitions = $loaded_entity->getContextDefinitions();
+    $this->assertEquals($context_definitions['test']->getDataType(), 'string', 'Data type of context definition is correct.');
+    $this->assertEquals($context_definitions['test']->getLabel(), 'Test string', 'Label of context definition is correct.');
   }
 
   /**
    * Tests that a reaction rule config entity can be saved.
    */
   public function testReactionRuleSaving() {
-    $rule = $this->expressionManager->createReactionRule();
+    $rule = $this->expressionManager->createRule();
     $storage = $this->container->get('entity_type.manager')->getStorage('rules_reaction_rule');
     $config_entity = $storage->create([
       'id' => 'test_rule',
